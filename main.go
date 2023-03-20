@@ -72,6 +72,31 @@ func printTodo(todo db.Todo) {
 	fmt.Printf("%d: %s (%s) - Done: %v\n", todo.ID, todo.Title, todo.Description, todo.IsDone)
 }
 
+func validateArgs(args []string) error {
+	command := args[1]
+
+	switch command {
+	case "add":
+		if len(args) < 4 {
+			return fmt.Errorf("Usage: add <title> <description>")
+		}
+	case "get", "delete":
+		if len(args) < 3 {
+			return fmt.Errorf("Usage: %s <id>", command)
+		}
+	case "update":
+		if len(args) < 6 {
+			return fmt.Errorf("Usage: update <id> <title> <description> <is_done>")
+		}
+	}
+
+	return nil
+}
+
+func parseArgs(args []string) (string, []string) {
+	return args[1], args[2:]
+}
+
 func main() {
 	ctx := context.Background()
 
@@ -88,14 +113,16 @@ func main() {
 		return
 	}
 
-	switch os.Args[1] {
+	command, args := parseArgs(os.Args)
+	if err := validateArgs(os.Args); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	switch command {
 	case "add":
-		if len(os.Args) < 4 {
-			usage()
-			return
-		}
-		title := os.Args[2]
-		desc := os.Args[3]
+		title := args[0]
+		desc := args[1]
 
 		if err := addTodo(ctx, q, title, desc); err != nil {
 			log.Fatal(err)
@@ -105,11 +132,7 @@ func main() {
 			log.Fatal(err)
 		}
 	case "get":
-		if len(os.Args) < 3 {
-			usage()
-			return
-		}
-		id, err := strconv.Atoi(os.Args[2])
+		id, err := strconv.Atoi(args[0])
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -117,17 +140,13 @@ func main() {
 			log.Fatal(err)
 		}
 	case "update":
-		if len(os.Args) < 6 {
-			usage()
-			return
-		}
-		id, err := strconv.Atoi(os.Args[2])
+		id, err := strconv.Atoi(args[0])
 		if err != nil {
 			log.Fatal(err)
 		}
-		title := os.Args[3]
-		desc := os.Args[4]
-		isDone, err := strconv.ParseBool(os.Args[5])
+		title := args[1]
+		desc := args[2]
+		isDone, err := strconv.ParseBool(args[3])
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -135,11 +154,7 @@ func main() {
 			log.Fatal(err)
 		}
 	case "delete":
-		if len(os.Args) < 3 {
-			usage()
-			return
-		}
-		id, err := strconv.Atoi(os.Args[2])
+		id, err := strconv.Atoi(args[0])
 		if err != nil {
 			log.Fatal(err)
 		}
