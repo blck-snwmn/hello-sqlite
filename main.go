@@ -81,10 +81,6 @@ func deleteTodo(ctx context.Context, q *db.Queries, id int64) error {
 	return nil
 }
 
-func parseArgs(args []string) (string, []string) {
-	return args[1], args[2:]
-}
-
 type AddAction struct {
 	q     *db.Queries
 	title string
@@ -137,44 +133,51 @@ type Action interface {
 	Run(ctx context.Context) error
 }
 
-func newAction(ctx context.Context, command string, args []string, q *db.Queries) (Action, error) {
+func newAction(ctx context.Context, args []string, q *db.Queries) (Action, error) {
+	if len(args) < 2 {
+		return nil, fmt.Errorf("Usage: <command> <args>")
+	}
+
+	command := args[1]
+	commandArgs := args[2:]
+
 	switch command {
 	case "add":
-		if len(args) < 2 {
+		if len(commandArgs) < 2 {
 			return nil, fmt.Errorf(errAddUsage)
 		}
-		title := args[0]
-		desc := args[1]
+		title := commandArgs[0]
+		desc := commandArgs[1]
 		return &AddAction{q: q, title: title, desc: desc}, nil
 	case "list":
 		return &ListAction{q: q}, nil
 	case "get":
-		if len(args) < 1 {
+		if len(commandArgs) < 1 {
 			return nil, fmt.Errorf(errGetUsage)
 		}
-		id, err := strconv.Atoi(args[0])
+		id, err := strconv.Atoi(commandArgs[0])
 		if err != nil {
 			return nil, err
 		}
 		return &GetAction{q: q, id: int64(id)}, nil
 	case "update":
-		if len(args) < 4 {
+		if len(commandArgs) < 4 {
 			return nil, fmt.Errorf(errUpdateUsage)
 		}
-		id, err := strconv.Atoi(args[0])
+		id, err := strconv.Atoi(commandArgs[0])
 		if err != nil {
 			return nil, err
 		}
-		isDone, err := strconv.ParseBool(args[3])
+		isDone, err := strconv.ParseBool(commandArgs[3])
 		if err != nil {
 			return nil, err
 		}
-		return &UpdateAction{q: q, id: int64(id), title: args[1], desc: args[2], isDone: isDone}, nil
+		return &UpdateAction{q: q, id: int64(id), title: commandArgs[1], desc: commandArgs[2], isDone: isDone}, nil
 	case "delete":
-		if len(args) < 1 {
+		if len(commandArgs) < 1 {
 			return nil, fmt.Errorf(errDeleteUsage)
 		}
-		id, err := strconv.Atoi(args[0])
+		id, err := strconv.Atoi(commandArgs[0])
 		if err != nil {
 			return nil, err
 		}
@@ -200,8 +203,7 @@ func main() {
 		return
 	}
 
-	command, args := parseArgs(os.Args)
-	action, err := newAction(ctx, command, args, q)
+	action, err := newAction(ctx, os.Args, q)
 	if err != nil {
 		fmt.Println(err)
 		return
