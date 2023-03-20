@@ -45,6 +45,29 @@ func getTodo(q *db.Queries, id int64) error {
 	return nil
 }
 
+func updateTodo(q *db.Queries, id int64, title, desc string, isDone bool) error {
+	err := q.UpdateTodo(context.Background(), db.UpdateTodoParams{
+		Title:       title,
+		Description: desc,
+		IsDone:      isDone,
+		ID:          id,
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Println("Todo updated")
+	return nil
+}
+
+func deleteTodo(q *db.Queries, id int64) error {
+	err := q.DeleteTodo(context.Background(), id)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Todo deleted")
+	return nil
+}
+
 func printTodo(todo db.Todo) {
 	fmt.Printf("%d: %s (%s) - Done: %v\n", todo.ID, todo.Title, todo.Description, todo.IsDone)
 }
@@ -106,16 +129,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = q.UpdateTodo(context.Background(), db.UpdateTodoParams{
-			Title:       title,
-			Description: desc,
-			IsDone:      isDone,
-			ID:          int64(id),
-		})
-		if err != nil {
+		if err := updateTodo(q, int64(id), title, desc, isDone); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("Todo updated")
 	case "delete":
 		if len(os.Args) < 3 {
 			usage()
@@ -125,11 +141,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = q.DeleteTodo(context.Background(), int64(id))
-		if err != nil {
+		if err := deleteTodo(q, int64(id)); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("Todo deleted")
 	default:
 		usage()
 	}
