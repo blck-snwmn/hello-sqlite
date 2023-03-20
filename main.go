@@ -12,6 +12,39 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+func addTodo(q *db.Queries, title, desc string) error {
+	_, err := q.CreateTodo(context.Background(), db.CreateTodoParams{
+		Title:       title,
+		Description: desc,
+		IsDone:      false,
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Println("Todo added")
+	return nil
+}
+
+func listTodos(q *db.Queries) error {
+	todos, err := q.ListTodos(context.Background())
+	if err != nil {
+		return err
+	}
+	for _, todo := range todos {
+		fmt.Printf("%d: %s (%s) - Done: %v\n", todo.ID, todo.Title, todo.Description, todo.IsDone)
+	}
+	return nil
+}
+
+func getTodo(q *db.Queries, id int64) error {
+	todo, err := q.GetTodo(context.Background(), id)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%d: %s (%s) - Done: %v\n", todo.ID, todo.Title, todo.Description, todo.IsDone)
+	return nil
+}
+
 func main() {
 	conn, err := sql.Open("sqlite3", "todo.db")
 	if err != nil {
@@ -34,22 +67,14 @@ func main() {
 		}
 		title := os.Args[2]
 		desc := os.Args[3]
-		_, err := q.CreateTodo(context.Background(), db.CreateTodoParams{
-			Title:       title,
-			Description: desc,
-			IsDone:      false,
-		})
-		if err != nil {
+
+		if err := addTodo(q, title, desc); err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println("Todo added")
 	case "list":
-		todos, err := q.ListTodos(context.Background())
-		if err != nil {
+		if err := listTodos(q); err != nil {
 			log.Fatal(err)
-		}
-		for _, todo := range todos {
-			fmt.Printf("%d: %s (%s) - Done: %v\n", todo.ID, todo.Title, todo.Description, todo.IsDone)
 		}
 	case "get":
 		if len(os.Args) < 3 {
@@ -60,11 +85,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		todo, err := q.GetTodo(context.Background(), int64(id))
-		if err != nil {
+		if err := getTodo(q, int64(id)); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("%d: %s (%s) - Done: %v\n", todo.ID, todo.Title, todo.Description, todo.IsDone)
 	case "update":
 		if len(os.Args) < 6 {
 			usage()
