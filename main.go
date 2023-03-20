@@ -74,27 +74,6 @@ func deleteTodo(ctx context.Context, q *db.Queries, id int64) error {
 	return nil
 }
 
-func validateArgs(args []string) error {
-	command := args[1]
-
-	switch command {
-	case "add":
-		if len(args) < 4 {
-			return fmt.Errorf("Usage: add <title> <description>")
-		}
-	case "get", "delete":
-		if len(args) < 3 {
-			return fmt.Errorf("Usage: %s <id>", command)
-		}
-	case "update":
-		if len(args) < 6 {
-			return fmt.Errorf("Usage: update <id> <title> <description> <is_done>")
-		}
-	}
-
-	return nil
-}
-
 func parseArgs(args []string) (string, []string) {
 	return args[1], args[2:]
 }
@@ -120,55 +99,82 @@ func (a *ListAction) Run(ctx context.Context) error {
 }
 
 type GetAction struct {
-	q    *db.Queries
-	args []string
+	q  *db.Queries
+	id int64
 }
 
 func (a *GetAction) Run(ctx context.Context) error {
-	id, err := strconv.Atoi(a.args[0])
-	if err != nil {
-		return err
-	}
-
-	return getTodo(ctx, a.q, int64(id))
+	return getTodo(ctx, a.q, a.id)
 }
 
 type UpdateAction struct {
-	q    *db.Queries
-	args []string
+	q      *db.Queries
+	id     int64
+	title  string
+	desc   string
+	isDone bool
 }
 
 func (a *UpdateAction) Run(ctx context.Context) error {
-	id, err := strconv.Atoi(a.args[0])
-	if err != nil {
-		return err
-	}
-	title := a.args[1]
-	desc := a.args[2]
-	isDone, err := strconv.ParseBool(a.args[3])
-	if err != nil {
-		return err
-	}
-
-	return updateTodo(ctx, a.q, int64(id), title, desc, isDone)
+	return updateTodo(ctx, a.q, a.id, a.title, a.desc, a.isDone)
 }
 
 type DeleteAction struct {
-	q    *db.Queries
-	args []string
+	q  *db.Queries
+	id int64
 }
 
 func (a *DeleteAction) Run(ctx context.Context) error {
-	id, err := strconv.Atoi(a.args[0])
-	if err != nil {
-		return err
-	}
-
-	return deleteTodo(ctx, a.q, int64(id))
+	return deleteTodo(ctx, a.q, a.id)
 }
 
 type Action interface {
 	Run(ctx context.Context) error
+}
+
+func newAction(ctx context.Context, command string, args []string, q *db.Queries) (Action, error) {
+	switch command {
+	case "add":
+		if len(args) < 2 {
+			return nil, fmt.Errorf("Usage: add <title> <description>")
+		}
+		return &AddAction{q: q, args: args}, nil
+	case "list":
+		return &ListAction{q: q}, nil
+	case "get":
+		if len(args) < 1 {
+			return nil, fmt.Errorf("Usage: get <id>")
+		}
+		id, err := strconv.Atoi(args[0])
+		if err != nil {
+			return nil, err
+		}
+		return &GetAction{q: q, id: int64(id)}, nil
+	case "update":
+		if len(args) < 4 {
+			return nil, fmt.Errorf("Usage: update <id> <title> <description> <is_done>")
+		}
+		id, err := strconv.Atoi(args[0])
+		if err != nil {
+			return nil, err
+		}
+		isDone, err := strconv.ParseBool(args[3])
+		if err != nil {
+			return nil, err
+		}
+		return &UpdateAction{q: q, id: int64(id), title: args[1], desc: args[2], isDone: isDone}, nil
+	case "delete":
+		if len(args) < 1 {
+			return nil, fmt.Errorf("Usage: delete <id>")
+		}
+		id, err := strconv.Atoi(args[0])
+		if err != nil {
+			return nil, err
+		}
+		return &DeleteAction{q: q, id: int64(id)}, nil
+	default:
+		return nil, fmt.Errorf("unknown command: %s", command)
+	}
 }
 
 func main() {
@@ -188,25 +194,9 @@ func main() {
 	}
 
 	command, args := parseArgs(os.Args)
-	if err := validateArgs(os.Args); err != nil {
+	action, err := newAction(ctx, command, args, q)
+	if err != nil {
 		fmt.Println(err)
-		return
-	}
-
-	var action Action
-	switch command {
-	case "add":
-		action = &AddAction{q: q, args: args}
-	case "list":
-		action = &ListAction{q: q}
-	case "get":
-		action = &GetAction{q: q, args: args}
-	case "update":
-		action = &UpdateAction{q: q, args: args}
-	case "delete":
-		action = &DeleteAction{q: q, args: args}
-	default:
-		usage()
 		return
 	}
 	if err := action.Run(ctx); err != nil {
