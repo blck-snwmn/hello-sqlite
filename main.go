@@ -79,15 +79,13 @@ func parseArgs(args []string) (string, []string) {
 }
 
 type AddAction struct {
-	q    *db.Queries
-	args []string
+	q     *db.Queries
+	title string
+	desc  string
 }
 
 func (a *AddAction) Run(ctx context.Context) error {
-	title := a.args[0]
-	desc := a.args[1]
-
-	return addTodo(ctx, a.q, title, desc)
+	return addTodo(ctx, a.q, a.title, a.desc)
 }
 
 type ListAction struct {
@@ -138,7 +136,9 @@ func newAction(ctx context.Context, command string, args []string, q *db.Queries
 		if len(args) < 2 {
 			return nil, fmt.Errorf("Usage: add <title> <description>")
 		}
-		return &AddAction{q: q, args: args}, nil
+		title := args[0]
+		desc := args[1]
+		return &AddAction{q: q, title: title, desc: desc}, nil
 	case "list":
 		return &ListAction{q: q}, nil
 	case "get":
