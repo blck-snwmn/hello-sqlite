@@ -31,7 +31,7 @@ func listTodos(q *db.Queries) error {
 		return err
 	}
 	for _, todo := range todos {
-		fmt.Printf("%d: %s (%s) - Done: %v\n", todo.ID, todo.Title, todo.Description, todo.IsDone)
+		printTodo(todo)
 	}
 	return nil
 }
@@ -41,8 +41,12 @@ func getTodo(q *db.Queries, id int64) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%d: %s (%s) - Done: %v\n", todo.ID, todo.Title, todo.Description, todo.IsDone)
+	printTodo(todo)
 	return nil
+}
+
+func printTodo(todo db.Todo) {
+	fmt.Printf("%d: %s (%s) - Done: %v\n", todo.ID, todo.Title, todo.Description, todo.IsDone)
 }
 
 func main() {
