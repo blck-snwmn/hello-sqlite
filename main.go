@@ -12,8 +12,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func addTodo(q *db.Queries, title, desc string) error {
-	_, err := q.CreateTodo(context.Background(), db.CreateTodoParams{
+func addTodo(ctx context.Context, q *db.Queries, title, desc string) error {
+	_, err := q.CreateTodo(ctx, db.CreateTodoParams{
 		Title:       title,
 		Description: desc,
 		IsDone:      false,
@@ -25,8 +25,8 @@ func addTodo(q *db.Queries, title, desc string) error {
 	return nil
 }
 
-func listTodos(q *db.Queries) error {
-	todos, err := q.ListTodos(context.Background())
+func listTodos(ctx context.Context, q *db.Queries) error {
+	todos, err := q.ListTodos(ctx)
 	if err != nil {
 		return err
 	}
@@ -36,8 +36,8 @@ func listTodos(q *db.Queries) error {
 	return nil
 }
 
-func getTodo(q *db.Queries, id int64) error {
-	todo, err := q.GetTodo(context.Background(), id)
+func getTodo(ctx context.Context, q *db.Queries, id int64) error {
+	todo, err := q.GetTodo(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -45,8 +45,8 @@ func getTodo(q *db.Queries, id int64) error {
 	return nil
 }
 
-func updateTodo(q *db.Queries, id int64, title, desc string, isDone bool) error {
-	err := q.UpdateTodo(context.Background(), db.UpdateTodoParams{
+func updateTodo(ctx context.Context, q *db.Queries, id int64, title, desc string, isDone bool) error {
+	err := q.UpdateTodo(ctx, db.UpdateTodoParams{
 		Title:       title,
 		Description: desc,
 		IsDone:      isDone,
@@ -59,8 +59,8 @@ func updateTodo(q *db.Queries, id int64, title, desc string, isDone bool) error 
 	return nil
 }
 
-func deleteTodo(q *db.Queries, id int64) error {
-	err := q.DeleteTodo(context.Background(), id)
+func deleteTodo(ctx context.Context, q *db.Queries, id int64) error {
+	err := q.DeleteTodo(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -73,6 +73,8 @@ func printTodo(todo db.Todo) {
 }
 
 func main() {
+	ctx := context.Background()
+
 	conn, err := sql.Open("sqlite3", "todo.db")
 	if err != nil {
 		log.Fatal(err)
@@ -95,11 +97,11 @@ func main() {
 		title := os.Args[2]
 		desc := os.Args[3]
 
-		if err := addTodo(q, title, desc); err != nil {
+		if err := addTodo(ctx, q, title, desc); err != nil {
 			log.Fatal(err)
 		}
 	case "list":
-		if err := listTodos(q); err != nil {
+		if err := listTodos(ctx, q); err != nil {
 			log.Fatal(err)
 		}
 	case "get":
@@ -111,7 +113,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := getTodo(q, int64(id)); err != nil {
+		if err := getTodo(ctx, q, int64(id)); err != nil {
 			log.Fatal(err)
 		}
 	case "update":
@@ -129,7 +131,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := updateTodo(q, int64(id), title, desc, isDone); err != nil {
+		if err := updateTodo(ctx, q, int64(id), title, desc, isDone); err != nil {
 			log.Fatal(err)
 		}
 	case "delete":
@@ -141,7 +143,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := deleteTodo(q, int64(id)); err != nil {
+		if err := deleteTodo(ctx, q, int64(id)); err != nil {
 			log.Fatal(err)
 		}
 	default:
