@@ -12,6 +12,12 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type Todo db.Todo
+
+func (t Todo) Print() {
+	fmt.Printf("%d: %s (%s) - Done: %v\n", t.ID, t.Title, t.Description, t.IsDone)
+}
+
 func addTodo(ctx context.Context, q *db.Queries, title, desc string) error {
 	_, err := q.CreateTodo(ctx, db.CreateTodoParams{
 		Title:       title,
@@ -31,7 +37,7 @@ func listTodos(ctx context.Context, q *db.Queries) error {
 		return err
 	}
 	for _, todo := range todos {
-		printTodo(todo)
+		Todo(todo).Print()
 	}
 	return nil
 }
@@ -41,7 +47,7 @@ func getTodo(ctx context.Context, q *db.Queries, id int64) error {
 	if err != nil {
 		return err
 	}
-	printTodo(todo)
+	Todo(todo).Print()
 	return nil
 }
 
@@ -66,10 +72,6 @@ func deleteTodo(ctx context.Context, q *db.Queries, id int64) error {
 	}
 	fmt.Println("Todo deleted")
 	return nil
-}
-
-func printTodo(todo db.Todo) {
-	fmt.Printf("%d: %s (%s) - Done: %v\n", todo.ID, todo.Title, todo.Description, todo.IsDone)
 }
 
 func validateArgs(args []string) error {
