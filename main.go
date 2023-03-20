@@ -12,6 +12,13 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const (
+	errAddUsage    = "Usage: add <title> <description>"
+	errGetUsage    = "Usage: get <id>"
+	errUpdateUsage = "Usage: update <id> <title> <description> <is_done>"
+	errDeleteUsage = "Usage: delete <id>"
+)
+
 type Todo db.Todo
 
 func (t Todo) Print() {
@@ -134,7 +141,7 @@ func newAction(ctx context.Context, command string, args []string, q *db.Queries
 	switch command {
 	case "add":
 		if len(args) < 2 {
-			return nil, fmt.Errorf("Usage: add <title> <description>")
+			return nil, fmt.Errorf(errAddUsage)
 		}
 		title := args[0]
 		desc := args[1]
@@ -143,7 +150,7 @@ func newAction(ctx context.Context, command string, args []string, q *db.Queries
 		return &ListAction{q: q}, nil
 	case "get":
 		if len(args) < 1 {
-			return nil, fmt.Errorf("Usage: get <id>")
+			return nil, fmt.Errorf(errGetUsage)
 		}
 		id, err := strconv.Atoi(args[0])
 		if err != nil {
@@ -152,7 +159,7 @@ func newAction(ctx context.Context, command string, args []string, q *db.Queries
 		return &GetAction{q: q, id: int64(id)}, nil
 	case "update":
 		if len(args) < 4 {
-			return nil, fmt.Errorf("Usage: update <id> <title> <description> <is_done>")
+			return nil, fmt.Errorf(errUpdateUsage)
 		}
 		id, err := strconv.Atoi(args[0])
 		if err != nil {
@@ -165,7 +172,7 @@ func newAction(ctx context.Context, command string, args []string, q *db.Queries
 		return &UpdateAction{q: q, id: int64(id), title: args[1], desc: args[2], isDone: isDone}, nil
 	case "delete":
 		if len(args) < 1 {
-			return nil, fmt.Errorf("Usage: delete <id>")
+			return nil, fmt.Errorf(errDeleteUsage)
 		}
 		id, err := strconv.Atoi(args[0])
 		if err != nil {
@@ -206,9 +213,9 @@ func main() {
 
 func usage() {
 	fmt.Println("Usage:")
-	fmt.Println(" add <title> <description>")
+	fmt.Println(" " + errAddUsage)
 	fmt.Println(" list")
-	fmt.Println(" get <id>")
-	fmt.Println(" update <id> <title> <description> <is_done>")
-	fmt.Println(" delete <id>")
+	fmt.Println(" " + errGetUsage)
+	fmt.Println(" " + errUpdateUsage)
+	fmt.Println(" " + errDeleteUsage)
 }
