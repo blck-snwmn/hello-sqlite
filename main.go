@@ -164,6 +164,11 @@ func (a *DeleteAction) Run(ctx context.Context) error {
 
 	return deleteTodo(ctx, a.q, int64(id))
 }
+
+type Action interface {
+	Run(ctx context.Context) error
+}
+
 func main() {
 	ctx := context.Background()
 
@@ -186,34 +191,24 @@ func main() {
 		return
 	}
 
+	var action Action
 	switch command {
 	case "add":
-		action := &AddAction{q: q, args: args}
-		if err := action.Run(ctx); err != nil {
-			log.Fatal(err)
-		}
+		action = &AddAction{q: q, args: args}
 	case "list":
-		action := &ListAction{q: q}
-		if err := action.Run(ctx); err != nil {
-			log.Fatal(err)
-		}
+		action = &ListAction{q: q}
 	case "get":
-		action := &GetAction{q: q, args: args}
-		if err := action.Run(ctx); err != nil {
-			log.Fatal(err)
-		}
+		action = &GetAction{q: q, args: args}
 	case "update":
-		action := &UpdateAction{q: q, args: args}
-		if err := action.Run(ctx); err != nil {
-			log.Fatal(err)
-		}
+		action = &UpdateAction{q: q, args: args}
 	case "delete":
-		action := &DeleteAction{q: q, args: args}
-		if err := action.Run(ctx); err != nil {
-			log.Fatal(err)
-		}
+		action = &DeleteAction{q: q, args: args}
 	default:
 		usage()
+		return
+	}
+	if err := action.Run(ctx); err != nil {
+		log.Fatal(err)
 	}
 }
 
