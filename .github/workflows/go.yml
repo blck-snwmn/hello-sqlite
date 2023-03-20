@@ -1,0 +1,9 @@
+name: Go test&lint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-lint:
+    uses: blck-snwmn/github-playground/.github/workflows/resuable-go-lint.yml@main
