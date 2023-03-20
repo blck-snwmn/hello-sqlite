@@ -12,3 +12,6 @@ UPDATE todos SET title = ?, description = ?, is_done = ? WHERE id = ?;
 
 -- name: DeleteTodo :exec
 DELETE FROM todos WHERE id = ?;
+
+-- name: UpdateTodoIsDone :exec
+UPDATE todos SET is_done = ? WHERE id = ?;

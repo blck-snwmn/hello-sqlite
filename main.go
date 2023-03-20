@@ -17,6 +17,7 @@ const (
 	errGetUsage    = "Usage: get <id>"
 	errUpdateUsage = "Usage: update <id> <title> <description> <is_done>"
 	errDeleteUsage = "Usage: delete <id>"
+	errDoneUsage   = "Usage: done <id>"
 )
 
 type Todo db.Todo
@@ -109,6 +110,23 @@ func (a *DeleteAction) Run(ctx context.Context) error {
 	return nil
 }
 
+type DoneAction struct {
+	q  *db.Queries
+	id int64
+}
+
+func (a *DoneAction) Run(ctx context.Context) error {
+	err := a.q.UpdateTodoIsDone(ctx, db.UpdateTodoIsDoneParams{
+		ID:     a.id,
+		IsDone: true,
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Println("Todo marked as done")
+	return nil
+}
+
 type Action interface {
 	Run(ctx context.Context) error
 }
@@ -162,6 +180,15 @@ func newAction(ctx context.Context, args []string, q *db.Queries) (Action, error
 			return nil, err
 		}
 		return &DeleteAction{q: q, id: int64(id)}, nil
+	case "done":
+		if len(commandArgs) < 1 {
+			return nil, fmt.Errorf(errDoneUsage)
+		}
+		id, err := strconv.Atoi(commandArgs[0])
+		if err != nil {
+			return nil, err
+		}
+		return &DoneAction{q: q, id: int64(id)}, nil
 	default:
 		return nil, fmt.Errorf("unknown command: %s", command)
 	}
@@ -200,4 +227,5 @@ func usage() {
 	fmt.Println(" " + errGetUsage)
 	fmt.Println(" " + errUpdateUsage)
 	fmt.Println(" " + errDeleteUsage)
+	fmt.Println(" " + errDoneUsage)
 }

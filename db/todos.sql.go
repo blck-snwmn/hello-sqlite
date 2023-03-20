@@ -108,3 +108,17 @@ func (q *Queries) UpdateTodo(ctx context.Context, arg UpdateTodoParams) error {
 	)
 	return err
 }
+
+const updateTodoIsDone = `-- name: UpdateTodoIsDone :exec
+UPDATE todos SET is_done = ? WHERE id = ?
+`
+
+type UpdateTodoIsDoneParams struct {
+	IsDone bool
+	ID     int64
+}
+
+func (q *Queries) UpdateTodoIsDone(ctx context.Context, arg UpdateTodoIsDoneParams) error {
+	_, err := q.db.ExecContext(ctx, updateTodoIsDone, arg.IsDone, arg.ID)
+	return err
+}
