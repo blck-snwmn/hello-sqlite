@@ -97,6 +97,73 @@ func parseArgs(args []string) (string, []string) {
 	return args[1], args[2:]
 }
 
+type AddAction struct {
+	q    *db.Queries
+	args []string
+}
+
+func (a *AddAction) Run(ctx context.Context) error {
+	title := a.args[0]
+	desc := a.args[1]
+
+	return addTodo(ctx, a.q, title, desc)
+}
+
+type ListAction struct {
+	q *db.Queries
+}
+
+func (a *ListAction) Run(ctx context.Context) error {
+	return listTodos(ctx, a.q)
+}
+
+type GetAction struct {
+	q    *db.Queries
+	args []string
+}
+
+func (a *GetAction) Run(ctx context.Context) error {
+	id, err := strconv.Atoi(a.args[0])
+	if err != nil {
+		return err
+	}
+
+	return getTodo(ctx, a.q, int64(id))
+}
+
+type UpdateAction struct {
+	q    *db.Queries
+	args []string
+}
+
+func (a *UpdateAction) Run(ctx context.Context) error {
+	id, err := strconv.Atoi(a.args[0])
+	if err != nil {
+		return err
+	}
+	title := a.args[1]
+	desc := a.args[2]
+	isDone, err := strconv.ParseBool(a.args[3])
+	if err != nil {
+		return err
+	}
+
+	return updateTodo(ctx, a.q, int64(id), title, desc, isDone)
+}
+
+type DeleteAction struct {
+	q    *db.Queries
+	args []string
+}
+
+func (a *DeleteAction) Run(ctx context.Context) error {
+	id, err := strconv.Atoi(a.args[0])
+	if err != nil {
+		return err
+	}
+
+	return deleteTodo(ctx, a.q, int64(id))
+}
 func main() {
 	ctx := context.Background()
 
@@ -121,44 +188,28 @@ func main() {
 
 	switch command {
 	case "add":
-		title := args[0]
-		desc := args[1]
-
-		if err := addTodo(ctx, q, title, desc); err != nil {
+		action := &AddAction{q: q, args: args}
+		if err := action.Run(ctx); err != nil {
 			log.Fatal(err)
 		}
 	case "list":
-		if err := listTodos(ctx, q); err != nil {
+		action := &ListAction{q: q}
+		if err := action.Run(ctx); err != nil {
 			log.Fatal(err)
 		}
 	case "get":
-		id, err := strconv.Atoi(args[0])
-		if err != nil {
-			log.Fatal(err)
-		}
-		if err := getTodo(ctx, q, int64(id)); err != nil {
+		action := &GetAction{q: q, args: args}
+		if err := action.Run(ctx); err != nil {
 			log.Fatal(err)
 		}
 	case "update":
-		id, err := strconv.Atoi(args[0])
-		if err != nil {
-			log.Fatal(err)
-		}
-		title := args[1]
-		desc := args[2]
-		isDone, err := strconv.ParseBool(args[3])
-		if err != nil {
-			log.Fatal(err)
-		}
-		if err := updateTodo(ctx, q, int64(id), title, desc, isDone); err != nil {
+		action := &UpdateAction{q: q, args: args}
+		if err := action.Run(ctx); err != nil {
 			log.Fatal(err)
 		}
 	case "delete":
-		id, err := strconv.Atoi(args[0])
-		if err != nil {
-			log.Fatal(err)
-		}
-		if err := deleteTodo(ctx, q, int64(id)); err != nil {
+		action := &DeleteAction{q: q, args: args}
+		if err := action.Run(ctx); err != nil {
 			log.Fatal(err)
 		}
 	default:
