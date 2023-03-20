@@ -25,10 +25,16 @@ func (t Todo) Print() {
 	fmt.Printf("%d: %s (%s) - Done: %v\n", t.ID, t.Title, t.Description, t.IsDone)
 }
 
-func addTodo(ctx context.Context, q *db.Queries, title, desc string) error {
-	_, err := q.CreateTodo(ctx, db.CreateTodoParams{
-		Title:       title,
-		Description: desc,
+type AddAction struct {
+	q     *db.Queries
+	title string
+	desc  string
+}
+
+func (a *AddAction) Run(ctx context.Context) error {
+	_, err := a.q.CreateTodo(ctx, db.CreateTodoParams{
+		Title:       a.title,
+		Description: a.desc,
 		IsDone:      false,
 	})
 	if err != nil {
@@ -38,8 +44,12 @@ func addTodo(ctx context.Context, q *db.Queries, title, desc string) error {
 	return nil
 }
 
-func listTodos(ctx context.Context, q *db.Queries) error {
-	todos, err := q.ListTodos(ctx)
+type ListAction struct {
+	q *db.Queries
+}
+
+func (a *ListAction) Run(ctx context.Context) error {
+	todos, err := a.q.ListTodos(ctx)
 	if err != nil {
 		return err
 	}
@@ -49,63 +59,18 @@ func listTodos(ctx context.Context, q *db.Queries) error {
 	return nil
 }
 
-func getTodo(ctx context.Context, q *db.Queries, id int64) error {
-	todo, err := q.GetTodo(ctx, id)
-	if err != nil {
-		return err
-	}
-	Todo(todo).Print()
-	return nil
-}
-
-func updateTodo(ctx context.Context, q *db.Queries, id int64, title, desc string, isDone bool) error {
-	err := q.UpdateTodo(ctx, db.UpdateTodoParams{
-		Title:       title,
-		Description: desc,
-		IsDone:      isDone,
-		ID:          id,
-	})
-	if err != nil {
-		return err
-	}
-	fmt.Println("Todo updated")
-	return nil
-}
-
-func deleteTodo(ctx context.Context, q *db.Queries, id int64) error {
-	err := q.DeleteTodo(ctx, id)
-	if err != nil {
-		return err
-	}
-	fmt.Println("Todo deleted")
-	return nil
-}
-
-type AddAction struct {
-	q     *db.Queries
-	title string
-	desc  string
-}
-
-func (a *AddAction) Run(ctx context.Context) error {
-	return addTodo(ctx, a.q, a.title, a.desc)
-}
-
-type ListAction struct {
-	q *db.Queries
-}
-
-func (a *ListAction) Run(ctx context.Context) error {
-	return listTodos(ctx, a.q)
-}
-
 type GetAction struct {
 	q  *db.Queries
 	id int64
 }
 
 func (a *GetAction) Run(ctx context.Context) error {
-	return getTodo(ctx, a.q, a.id)
+	todo, err := a.q.GetTodo(ctx, a.id)
+	if err != nil {
+		return err
+	}
+	Todo(todo).Print()
+	return nil
 }
 
 type UpdateAction struct {
@@ -117,7 +82,17 @@ type UpdateAction struct {
 }
 
 func (a *UpdateAction) Run(ctx context.Context) error {
-	return updateTodo(ctx, a.q, a.id, a.title, a.desc, a.isDone)
+	err := a.q.UpdateTodo(ctx, db.UpdateTodoParams{
+		Title:       a.title,
+		Description: a.desc,
+		IsDone:      a.isDone,
+		ID:          a.id,
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Println("Todo updated")
+	return nil
 }
 
 type DeleteAction struct {
@@ -126,7 +101,12 @@ type DeleteAction struct {
 }
 
 func (a *DeleteAction) Run(ctx context.Context) error {
-	return deleteTodo(ctx, a.q, a.id)
+	err := a.q.DeleteTodo(ctx, a.id)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Todo deleted")
+	return nil
 }
 
 type Action interface {
