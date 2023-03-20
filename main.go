@@ -71,7 +71,6 @@ func main() {
 		if err := addTodo(q, title, desc); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("Todo added")
 	case "list":
 		if err := listTodos(q); err != nil {
 			log.Fatal(err)
