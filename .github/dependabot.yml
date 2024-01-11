@@ -1,10 +1,22 @@
 version: 2
 updates:
-  - package-ecosystem: "gomod" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "gomod"
+    directory: "/"
+    assignees:
+      - blck-snwmn
     schedule:
-      interval: "daily"
-  - package-ecosystem: "github-actions" # See documentation for possible values
-    directory: "/" # Location of package manifests
+      interval: "monthly"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    assignees:
+      - blck-snwmn
     schedule:
-      interval: "daily"
+      interval: "monthly"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
