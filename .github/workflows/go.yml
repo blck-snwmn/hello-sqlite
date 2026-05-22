@@ -6,4 +6,4 @@ on:
 
 jobs:
   test-lint:
-    uses: blck-snwmn/share-workflows/.github/workflows/reusable-go-lint.yml@main
+    uses: blck-snwmn/share-workflows/.github/workflows/reusable-go-lint.yml@78245d99cf579c6a572643a85cdcf110e613e705 # main
