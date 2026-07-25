@@ -20,7 +20,7 @@ type Action interface {
 
 func NewAction(ctx context.Context, args []string, q *db.Queries) (Action, error) {
 	if len(args) < 2 {
-		return nil, fmt.Errorf("Usage: <command> <args>")
+		return nil, fmt.Errorf("usage: <command> <args>")
 	}
 
 	command := args[1]
@@ -29,7 +29,7 @@ func NewAction(ctx context.Context, args []string, q *db.Queries) (Action, error
 	switch command {
 	case "add":
 		if len(commandArgs) < 2 {
-			return nil, fmt.Errorf("Usage: add <title> <description>")
+			return nil, fmt.Errorf("usage: add <title> <description>")
 		}
 		title := commandArgs[0]
 		desc := commandArgs[1]
@@ -38,7 +38,7 @@ func NewAction(ctx context.Context, args []string, q *db.Queries) (Action, error
 		return &ListAction{q: q}, nil
 	case "get":
 		if len(commandArgs) < 1 {
-			return nil, fmt.Errorf("Usage: get <id>")
+			return nil, fmt.Errorf("usage: get <id>")
 		}
 		id, err := strconv.Atoi(commandArgs[0])
 		if err != nil {
@@ -47,7 +47,7 @@ func NewAction(ctx context.Context, args []string, q *db.Queries) (Action, error
 		return &GetAction{q: q, id: int64(id)}, nil
 	case "update":
 		if len(commandArgs) < 4 {
-			return nil, fmt.Errorf("Usage: update <id> <title> <description> <is_done>")
+			return nil, fmt.Errorf("usage: update <id> <title> <description> <is_done>")
 		}
 		id, err := strconv.Atoi(commandArgs[0])
 		if err != nil {
@@ -60,7 +60,7 @@ func NewAction(ctx context.Context, args []string, q *db.Queries) (Action, error
 		return &UpdateAction{q: q, id: int64(id), title: commandArgs[1], desc: commandArgs[2], isDone: isDone}, nil
 	case "delete":
 		if len(commandArgs) < 1 {
-			return nil, fmt.Errorf("Usage: delete <id>")
+			return nil, fmt.Errorf("usage: delete <id>")
 		}
 		id, err := strconv.Atoi(commandArgs[0])
 		if err != nil {
@@ -69,7 +69,7 @@ func NewAction(ctx context.Context, args []string, q *db.Queries) (Action, error
 		return &DeleteAction{q: q, id: int64(id)}, nil
 	case "done":
 		if len(commandArgs) < 1 {
-			return nil, fmt.Errorf("Usage: done <id>")
+			return nil, fmt.Errorf("usage: done <id>")
 		}
 		id, err := strconv.Atoi(commandArgs[0])
 		if err != nil {

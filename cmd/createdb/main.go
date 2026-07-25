@@ -14,7 +14,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Printf("close database: %v", err)
+		}
+	}()
 
 	// create tables
 	if _, err := conn.ExecContext(context.Background(), db.DDL); err != nil {
