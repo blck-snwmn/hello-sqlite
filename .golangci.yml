@@ -3,3 +3,8 @@ version: "2"
 linters:
   enable:
     - gosec
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
